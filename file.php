@@ -44,11 +44,11 @@ if($_POST["txtFileName"]!=''){
 }
 
 if($_POST["action"]=='mkdir'){
-	$mkd=mkdir($dir.iconv('UTF-8','gb2312',$_POST["dirname"]));
+	$mkd=mkdir($dir.iconv('UTF-8','GBK',$_POST["dirname"]));
 	if($mkd==true){
-	//echo '<a href="file.php?dir='.$dir.urlencode(iconv('UTF-8','gb2312',$_POST["dirname"])).'">aaaa</a>';
+	//echo '<a href="file.php?dir='.$dir.urlencode(iconv('UTF-8','GBK',$_POST["dirname"])).'">aaaa</a>';
 	?>
-<meta http-equiv="refresh" content="0;URL=file.php?dir=<?=urlencode($dir.iconv('UTF-8','gb2312',$_POST["dirname"]))?>">
+<meta http-equiv="refresh" content="0;URL=file.php?dir=<?=urlencode($dir.iconv('UTF-8','GBK',$_POST["dirname"]))?>">
 	<?
 /*
 */
@@ -173,6 +173,7 @@ function doAjaxRequest(action,id,state,meth) {
        var url = "ajax.php?action="+action+"&id="+id+"&state="+state;
 	   var cont='';
        var params = "cont="+cont;
+	   //alert(url);
 	   /*
        var myAjax = new Ajax.Request(
        url,
@@ -193,6 +194,7 @@ function doAjaxRequest(action,id,state,meth) {
 
 
 function showResponse(request) {
+	//alert(request);
 	text=request.split("{p}");
 	
 	if(text.length==1){
@@ -299,14 +301,14 @@ if($dir && $_GET['file'] && $_GET['del']==1){//删除文件或目录
 
 		if($file!='..' && $file!='.'){
 			if($ist>-1 || $isf==false){
-				$f[$y]=iconv('gb2312','UTF-8',$file);
+				$f[$y]=iconv('GBK','UTF-8',$file);
 				if(is_dir($dir.$file)){
-					$di[$u]['fname']=iconv('gb2312','UTF-8',$file);
+					$di[$u]['fname']=iconv('GBK','UTF-8',$file);
 					$di[$u][ftime]=filemtime($dir.$file);
 					$di[$u][fsize]=filesize($dir.$file);
 					$u++;
 				}else{
-					$t[$i]['fname']=iconv('gb2312','UTF-8',$file);
+					$t[$i]['fname']=iconv('GBK','UTF-8',$file);
 					$t[$i][ftime]=filemtime($dir.$file);
 					$t[$i][fsize]=filesize($dir.$file);
 					$totalsize=$t[$i][fsize]+$totalsize;
@@ -362,165 +364,12 @@ fwrite($handle2, $cont);
 	</form>
 </div>
 
-    <style>
-        #progress{
-            width: 300px;
-            height: 20px;
-            background-color:#f7f7f7;
-            box-shadow:inset 0 1px 2px rgba(0,0,0,0.1);
-            border-radius:4px;
-            background-image:linear-gradient(to bottom,#f5f5f5,#f9f9f9);
-			display:none;
-        }
-
-        #finish{
-            background-color: #149bdf;
-            background-image:linear-gradient(45deg,rgba(255,255,255,0.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.15) 50%,rgba(255,255,255,0.15) 75%,transparent 75%,transparent);
-            background-size:40px 40px;
-            height: 100%;
-        }
-        form{
-            margin-top: 0px;
-        }
-    </style>
 <div style="background:#f2f2f2;margin:10px 0 0 0;">
 post_max_size:<?=ini_get("post_max_size")?>,&nbsp;upload_max_filesize:<?=ini_get("upload_max_filesize")?>,&nbsp;max_file_uploads:<?=ini_get("max_file_uploads")?>,&nbsp;<a href="?action=phpinfo" target="blank">phpinfo</a>
-<div id="progress">
-    <div style="position:fixed;line-height:200%;" ><font id="progtext">0</font> <font id="filesize">1212</font></div>
-    <div id="finish" style="width: 0%;" progress="0"></div>
+<br />
+<input type="button" onclick="$('#webup').toggle('1000')" value="webuploader上传" /><br />
+<iframe id="webup" src="./webup.php?dir=../../<?=urlencode($dir)?>" frameborder="0" style="width:500px;height:500px;display:none;"></iframe>
 </div>
-<form action="./upload.php">
-    <input type="hidden" name="uppath" id="uppath" value="<?=$dir?>">
-    <input type="file" name="file" id="file">
-    <input type="button" value="停止" id="stop" style="display:none;">
-</form>
-<a href="./webup/index.php?dir=../../<?=$dir?>" target="_blank">上传</a>
-</div>
-
-<script>
-    var fileForm = document.getElementById("file");
-    var uppath = document.getElementById("uppath").value;
-    var stopBtn = document.getElementById('stop');
-    var upload = new Upload();
-	//alert(uppath);
-
-    fileForm.onchange = function(){
-		if(file_exists(this)==false){
-			return false;
-		
-		};
-		//alert('ccc');
-        upload.addFileAndSend(this);
-    }
-    fileForm.onclick = function(){
-        //alert('dd');
-    }
-
-    stopBtn.onclick = function(){
-        this.value = "停止中";
-        upload.stop();
-        this.value = "已停止";
-    }
-	function file_exists(file){
-		var htmlobj=$.ajax({url:"./upload.php?action=exists&filepath="+uppath+"&fileName="+file.files[0].name,async:false});
-		if(htmlobj.responseText=='exists'){
-			return confirm('文件已存在，是否覆盖?');
-		}else{
-			return true;
-		}
-
-	}
-
-    function Upload(){
-        var xhr = new XMLHttpRequest();
-        var form_data = new FormData();
-        const LENGTH = 1024 * 1024;
-        var start = 0;
-        var end = start + LENGTH;
-        var blob;
-        var blob_num = 1;
-        var is_stop = 0
-        //对外方法，传入文件对象
-        this.addFileAndSend = function(that){
-		
-        xhr = new XMLHttpRequest();
-        form_data = new FormData();
-		start = 0;
-         end = start + LENGTH;
-         blob='';
-         blob_num = 1;
-         is_stop = 0
-		
-		
-            var file = that.files[0];
-            blob = cutFile(file);
-            sendFile(blob,file);
-            blob_num  += 1;
-        }
-        //停止文件上传
-        this.stop = function(){
-            xhr.abort();
-            is_stop = 1;
-        }
-        //切割文件
-        function cutFile(file){
-            var file_blob = file.slice(start,end);
-            start = end;
-            end = start + LENGTH;
-            return file_blob;
-        };
-        //发送文件
-        function sendFile(blob,file){
-            var total_blob_num = Math.ceil(file.size / LENGTH);
-            form_data.append('file',blob);
-            form_data.append('blob_num',blob_num);
-            form_data.append('total_blob_num',total_blob_num);
-            form_data.append('file_name',file.name);
-            form_data.append('uppath',uppath);
-			
-			document.getElementById('progress').style.display='block';
-			document.getElementById('filesize').innerHTML=Math.round(file.size/1024/1024*100)/100+'MB';
-			document.getElementById('stop').style.display='';
-
-            xhr.open('POST','./upload.php',false);
-            xhr.onreadystatechange  = function () {
-				rtext=xhr.responseText;
-                var progress;
-                var progress2;
-                var progressObj = document.getElementById('finish');
-                if(total_blob_num == 1){
-                    progress = '100%';
-                    progress2 = '100';
-					
-					
-                }else{
-                    progress = Math.min(100,(blob_num/total_blob_num)* 100 ) +'%';
-                    progress2 = Math.min(100,(blob_num/total_blob_num)* 100 );
-                }
-				if(progress2=='100'){
-					document.getElementById('stop').style.display='none';
-					//document.getElementById("file").value='';
-				}
-                progressObj.style.width = progress;
-				//alert('aa '+rtext);
-				document.getElementById("progtext").innerHTML= Math.round(progress2*100)/100 +'%';
-                var t = setTimeout(function(){
-                    if(start < file.size && is_stop === 0){
-                        blob = cutFile(file);
-                        sendFile(blob,file);
-                        blob_num  += 1;
-                    }else{
-                        setTimeout(t);
-                    }
-                },1000);
-            }
-            
-			xhr.send(form_data);
-			
-        }
-    }
-
-</script>
 
 
 <?
@@ -560,7 +409,7 @@ $cdir=explode('/',$cdir);
 foreach($cdir as $k){
 	if($k!=''){
 		$cdirt.=urlencode($k).'/';
-		$ccdir.=' / <a href="file.php?dir='.$dirdeep.$cdirt.'">'.iconv('gb2312','UTF-8',$k).'</a>';
+		$ccdir.=' / <a href="file.php?dir='.$dirdeep.$cdirt.'">'.iconv('GBK','UTF-8',$k).'</a>';
 	}
 }
 echo 'http://<a href="file.php?dir='.$dirdeep.'">'.$_SERVER['HTTP_HOST'].'</a>'.$ccdir;?>
@@ -569,7 +418,7 @@ echo 'http://<a href="file.php?dir='.$dirdeep.'">'.$_SERVER['HTTP_HOST'].'</a>'.
 <div style="margin:5px;">
 <?
 foreach($dirloga as $k){
-	echo '<a href="file.php?dir='.urlencode($k).'">'.iconv('gb2312','UTF-8',$k).'</a><br>';
+	echo '<a href="file.php?dir='.urlencode($k).'">'.iconv('GBK','UTF-8',$k).'</a><br>';
 }
 ?>
 <br><a href="javascript:void(0);" onclick="document.getElementById('dirlog').style.display='none';">关闭</a>
@@ -641,15 +490,24 @@ foreach($dirloga as $k){
 		}
 	}
 	
-	if($isimg==1){
-			$image_size = getimagesize($dir.$t[$j]['fname']);
+	if($isimg==1){ //图片
+			$image_size = getimagesize($dir.iconv('UTF-8','GBK',$t[$j]['fname']));
 			$image_size = '宽:'.$image_size[0].'&nbsp;高:'.$image_size[1];
 		if($t[$j][fsize]>$thumbsize){?>
+			<a href="<?=iconv('GBK','UTF-8',$dir).$t[$j]['fname']?>" target="_blank"><img src="./phpThumb/phpThumb.php?src=../<?=urlencode($dir.iconv('UTF-8','GBK',$t[$j]['fname']))?>&w=200&h=200&q=60&hash=abc" border="0" name="<?=$t[$j]['fname']?>" /></a>
 			
 	  <? }else{?>
-			<a href="<?=$dir.$t[$j]['fname']?>" target="_blank"><img src="<?=$dir.$t[$j]['fname']?>" border="0" onload="proDownImage(this);" width="30" height="30" name="<?=$t[$j]['fname']?>" /></a>
+			<a href="<?=iconv('GBK','UTF-8',$dir).$t[$j]['fname']?>" target="_blank"><img src="<?=iconv('GBK','UTF-8',$dir).$t[$j]['fname']?>" border="0" onload="proDownImage(this);" width="30" height="30" name="<?=$t[$j]['fname']?>" /></a>
 		<? }?>
-	<? }elseif($extf=='avi' || $extf=='mpg' || $extf=='mpeg' || $extf=='wmv' || $extf=='mid' || $extf=='wma' || $extf=='mp3' || $extf=='wav'){?>
+	<? }elseif($extf=='avi' || $extf=='mpg' || $extf=='mpeg' || $extf=='wmv' || $extf=='mid' || $extf=='wma' || $extf=='mp3' || $extf=='wav' || $extf=='mp4'){ //视频?>
+	<link rel="stylesheet" href="hivideo/assets/hivideo.css" />
+    <script type="text/javascript" src="hivideo/hivideo.js"></script>
+	<video ishivideo="true" autoplay="true" isrotate="false" autoHide="true" style="width:320px;height:320px;">
+            <source src="<?=$dir.iconv('GBK','UTF-8',$t[$j]['fname'])?>" type="video/mp4">
+        </video>
+	
+	
+	
 		<object classid="clsid:6BF52A52-394A-11D3-B153-00C04F79FAA6" style="width:100px; height:100px;" onMouseOver="javascript:this.style.width='200px';this.style.height='200px';" onMouseOut="javascript:this.style.width='100px';this.style.height='100px';">
 		<param value="<?=$dir.$t[$j]['fname']?>" name="URL" />
 		<param value="1" name="rate" />
@@ -675,7 +533,7 @@ foreach($dirloga as $k){
 		<param value="" name="captioningID" />
 		<param value="0" name="enableErrorDialogs" />
 		</object>
-	<? }elseif($extf=='swf'){?>
+	<? }elseif($extf=='swf'){  //swf ?>
 		<? if($t[$j][fsize]>300000){?>
 			 
 		<? }else{?>
@@ -685,23 +543,24 @@ foreach($dirloga as $k){
 	  <embed src="<?=$dir.$t[$j]['fname']?>" quality="high" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" width="100" height="100" scale="exactfit"></embed>
 	</object>
 		<? }?>
-	<? }elseif($extf=='flv'){?>
+	<? }elseif($extf=='flv'){ //flv视频?>
 		<script type="text/javascript">
 		AC_FL_RunContent( 'codebase','http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,28,0','width','100','height','100','src','../module/jwplayer/player','allowfullscreen','true','quality','high','pluginspage','http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash','movie','../module/jwplayer/player','flashvars','file=../<?=$dir.$t[$j]['fname']?>&bufferlength=5&autostart=false'); //end AC code
 		</script>
-	<? }elseif(is_dir($dir.iconv('UTF-8','gb2312',$t[$j]['fname']))){ $isdir=1;
+	<? }elseif(is_dir($dir.iconv('UTF-8','GBK',$t[$j]['fname']))){ $isdir=1;//目录
 	;?>
-<a href="file.php?dir=<?=urlencode(iconv('gb2312','UTF-8',$dir.$t[$j]['fname']))?>/"><img src="folder.jpg" border="0" /></a>
+<a href="file.php?dir=<?=urlencode($dir.iconv('UTF-8','GBK',$t[$j]['fname']))?>"><img src="folder.jpg" border="0" /></a>
 	<? } ?>
 	</td>
     <td style="height:30px;">
 	<div id="s<?=$j?>" style=" display:none; font-weight:bold; background: #66FFFF; width:100px; text-align:center;"></div>
 	<? if($isdir!=1){ ?>
-		<div style="width:300px;"><a href="<?=iconv('gb2312','UTF-8',$dir).$t[$j]['fname']?>" target="_blank" id="f<?=$j?>"><b><?=$t[$j]['fname']?></b></a></div>
+		<div style="width:300px;"><a href="<?=iconv('GBK','UTF-8',$dir).$t[$j]['fname']?>" target="_blank" id="f<?=$j?>"><b><?=$t[$j]['fname']?></b></a></div>
 	<?
 	}else{
+	
 	?>
-		<a href="file.php?dir=<?=urlencode($dir.iconv('UTF-8','gb2312',$t[$j]['fname'])) ?>" id="f<?=$j?>"><b><?=$t[$j]['fname']?></b></a>
+		<a href="file.php?dir=<?=urlencode($dir.iconv('UTF-8','GBK',$t[$j]['fname'])) ?>" id="f<?=$j?>"><b><?=$t[$j]['fname']?></b></a>
 	<?
 	}
 	?>
@@ -713,18 +572,21 @@ foreach($dirloga as $k){
 	<td><?=$image_size;?></td>
 	<td><?=date('Y-m-j H:i:s',$t[$j][ftime])?></td>
     <td><a href='javascript:void(0);' onClick="rename('<?=$j?>')" >[重命名]</a>&nbsp;
-<a href='file.php?dir=<?=urlencode($dir)?>&file=<?=urlencode(iconv('UTF-8','gb2312',$t[$j]['fname']))?>&del=1&page=<?=$_GET[page]?>' onclick='if(confirm("确认删除此文件:<?=$t[$j]['fname']?>")){return true;}return false;' >[删除]</a>
+<a href='file.php?dir=<?=urlencode($dir)?>&file=<?=urlencode(iconv('UTF-8','GBK',$t[$j]['fname']))?>&del=1&page=<?=$_GET[page]?>' onclick='if(confirm("确认删除此文件:<?=$t[$j]['fname']?>")){return true;}return false;' >[删除]</a>
 <?
 if($isdir==1){
 ?>
 &nbsp;<a href="javascript:void(0);" onclick="opentab('<?=$t[$j]['fname']?>','file.php?dir=<?=urlencode($dir.$t[$j]['fname'])?>/')">[新标签]</a>
 <?
-}
+}else{
+?>
+&nbsp;<a href='file.php?dir=<?=$dir?>&file=<?=urlencode(iconv('UTF-8','GBK',$t[$j]['fname']))?>&action=down&page=<?=$_GET[page]?>' target="_blank">[下载]</a>
+<?}
 $editfilea=explode(',',$editfile);
 foreach($editfilea as $k){
 	if(strtolower($extf)==$k){
 	?>
-		&nbsp;<a href="javascript:void(0);" onclick="opentab('<?=$t[$j]['fname']?>','filedo.php?dir=<?=urlencode($dir)?>&file=<?=urlencode(iconv('UTF-8','gb2312',$t[$j]['fname']))?>','file')" >[编辑]</a>&nbsp;<a href='file.php?dir=<?=$dir?>&file=<?=urlencode(iconv('UTF-8','gb2312',$t[$j]['fname']))?>&action=down&page=<?=$_GET[page]?>' >[下载]</a>
+		&nbsp;<a href="javascript:void(0);" onclick="opentab('<?=$t[$j]['fname']?>','filedo.php?dir=<?=urlencode($dir)?>&file=<?=urlencode(iconv('UTF-8','GBK',$t[$j]['fname']))?>','file')" >[编辑]</a>
 	<?
 	}
 }
@@ -746,7 +608,7 @@ if($extf=='zip'){
 </table>
     <div id="bottompage" style="float:left;width:850px;"><span style="float:left;width:36px;height:16px;display:block;padding:2px;">页码：</span>
 	<? for($u=0;$u<$totalpage;$u++){?>
-	<a href="file.php?page=<?=$u+1;?>&searname=<?=$_GET['searname']?>&action=<?=$_GET['action']?>&dir=<?=$dir?>" style="float:left;border:1px solid #cccccc;width:16px;height:16px;margin:2px;display:block;text-align:center;overflow:hidden;<? if($_GET[page]==$u+1 || ($_GET[page]=='' && $u==0))echo 'font-weight:bold;background:#dedede;'?>"><?=$u+1;?></a>
+	<a href="file.php?page=<?=$u+1;?>&searname=<?=$_GET['searname']?>&action=<?=$_GET['action']?>&dir=<?=urlencode($dir)?>" style="float:left;border:1px solid #cccccc;width:16px;height:16px;margin:2px;display:block;text-align:center;overflow:hidden;<? if($_GET[page]==$u+1 || ($_GET[page]=='' && $u==0))echo 'font-weight:bold;background:#dedede;'?>"><?=$u+1;?></a>
 	<? }
 	
 function multi_array_sort($multi_array,$sort_key,$sort=SORT_DESC){
